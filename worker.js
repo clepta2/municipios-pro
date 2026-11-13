@@ -304,6 +304,27 @@ async function obterRotaRodoviariaReal(lat1, lon1, lat2, lon2) {
   };
 }
 
+const ipBuckets = new Map();
+function checkRateLimit(ipOrKey, limit = 60, windowMs = 60000) {
+  const now = Date.now();
+  let entry = ipBuckets.get(ipOrKey);
+  if (!entry || now > entry.resetAt) {
+    entry = { count: 1, resetAt: now + windowMs };
+    ipBuckets.set(ipOrKey, entry);
+    if (ipBuckets.size > 10000) {
+      for (const [k, v] of ipBuckets) {
+        if (now > v.resetAt) ipBuckets.delete(k);
+      }
+    }
+    return { ok: true, remaining: limit - 1, resetAt: entry.resetAt };
+  }
+  entry.count++;
+  if (entry.count > limit) {
+    return { ok: false, remaining: 0, resetAt: entry.resetAt };
+  }
+  return { ok: true, remaining: limit - entry.count, resetAt: entry.resetAt };
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -311,6 +332,27 @@ export default {
 
     if (request.method === 'OPTIONS') {
       return new Response(null, { status: 204, headers: CORS_HEADERS });
+    }
+
+    const authHeader = request.headers.get('Authorization') || request.headers.get('x-api-key') || '';
+    const cleanKey = authHeader.replace(/^Bearer\s+/i, '').trim();
+    const hasApiKey = Boolean(
+      cleanKey && (
+        cleanKey.startsWith('mun_live_') || 
+        cleanKey.startsWith('mun_pro_') || 
+        cleanKey.startsWith('mun_master_') || 
+        cleanKey.startsWith('pnt_live_') ||
+        (env && (env.API_KEY === cleanKey || env.PRO_KEY === cleanKey))
+      ) && cleanKey.length >= 16
+    );
+    const clientIp = request.headers.get('cf-connecting-ip') || '127.0.0.1';
+    const maxReqs = hasApiKey ? 300 : 60;
+    const rl = checkRateLimit(hasApiKey ? cleanKey : clientIp, maxReqs);
+    if (!rl.ok && path !== '/health' && path !== '/status') {
+      return new Response(JSON.stringify({ ok: false, error: 'Rate limit excedido.' }), {
+        status: 429,
+        headers: { 'Content-Type': 'application/json', ...CORS_HEADERS }
+      });
     }
 
     // 1. Busca e Autocomplete Textual de Municípios (/api/municipios/busca)
