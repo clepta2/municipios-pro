@@ -1,0 +1,36 @@
+{
+  "name": "municipios-pro",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "SDK e API Oficial de Municípios do Brasil (5.570 Cidades IBGE), Cálculo de Distâncias Haversine, Trajeto Rodoviário e Estimativa de Frete na borda Cloudflare Edge Anycast (<1ms).",
+  "main": "municipios-pro.js",
+  "module": "municipios-pro.js",
+  "types": "types/index.d.ts",
+  "scripts": {
+    "test": "node test.js",
+    "deploy": "wrangler deploy"
+  },
+  "keywords": [
+    "municipios",
+    "ibge",
+    "distancias",
+    "haversine",
+    "frete",
+    "cidades-brasil",
+    "geolocalizacao",
+    "cloudflare-worker",
+    "edge-computing",
+    "brasil",
+    "sdk"
+  ],
+  "author": "clepta2 <clepta2@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/clepta2/municipios-pro.git"
+  },
+  "bugs": {
+    "url": "https://github.com/clepta2/municipios-pro/issues"
+  },
+  "homepage": "https://github.com/clepta2/municipios-pro#readme"
+}
