@@ -396,7 +396,11 @@ export default {
         resultados
       }, null, 2), {
         status: 200,
-        headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS }
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Cache-Control': 'public, max-age=86400, s-maxage=604800',
+          ...CORS_HEADERS
+        }
       });
     }
 
